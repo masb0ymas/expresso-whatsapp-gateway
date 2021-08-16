@@ -86,24 +86,19 @@ const clientWa = new Client({
 
 clientWa.on('message', async (msg) => {
   if (msg.body.match('[wW]*')) {
-    clientWa.sendMessage(
-      msg.from,
-      `Informasi lebih lanjut, Kamu bisa menghubungi customer service di +6282124026622 😊`
+    const contact = await msg.getContact()
+    const chat = await msg.getChat()
+
+    chat.sendMessage(
+      `
+      Hi @${contact.number}!,
+      Terimakasih telah menghubungi,
+      Pesan anda akan dibalas nantinya.
+      `,
+      {
+        mentions: [contact],
+      }
     )
-
-    // const contact = await msg.getContact()
-    // const chat = await msg.getChat()
-
-    // chat.sendMessage(
-    //   `
-    //   Hi @${contact.number}!,
-    //   Terimakasih telah menghubungi,
-    //   Pesan anda akan dibalas nantinya.
-    //   `,
-    //   {
-    //     mentions: [contact],
-    //   }
-    // )
   }
 
   // PING
