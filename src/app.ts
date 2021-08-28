@@ -18,7 +18,6 @@ import createError from 'http-errors'
 import { Server, Socket } from 'socket.io'
 import { Client, MessageMedia } from 'whatsapp-web.js'
 import asyncHandler from '@expresso/helpers/asyncHandler'
-import formatPhoneWA from '@expresso/helpers/phone'
 import withState from '@expresso/helpers/withState'
 import useMulter, { allowedImage } from '@expresso/hooks/useMulter'
 import useValidation from '@expresso/hooks/useValidation'
@@ -29,8 +28,12 @@ import ExpressErrorResponse from '@middlewares/ExpressErrorResponse'
 import winstonLogger, { winstonStream } from '@config/winston'
 import BuildResponse from '@expresso/modules/Response/BuildResponse'
 import ResponseError from '@expresso/modules/Response/ResponseError'
+import { formatPhoneWhatsApp } from '@expresso/helpers/Phone'
+
+require('dotenv').config()
 
 const port = process.env.PORT || 8001
+const appName = process.env.APP_NAME || 'Whatsapp Gateway'
 
 const app = express()
 const httpServer = http.createServer(app)
@@ -84,8 +87,66 @@ const clientWa = new Client({
   session: sessionCfg,
 })
 
+// Check change state listener
+clientWa.on('change_state', (newState) => {
+  console.log(newState)
+  if (newState === 'CONFLICT') {
+    console.log('CONFLICT detected')
+    // do something here
+  }
+  if (newState === 'DEPRECATED_VERSION') {
+    console.log('DEPRECATED_VERSION detected')
+    // do something here
+  }
+  if (newState === 'OPENING') {
+    console.log('OPENING detected')
+    // do something here
+  }
+  if (newState === 'PAIRING') {
+    console.log('PAIRING detected')
+    // do something here
+  }
+  if (newState === 'PROXYBLOCK') {
+    console.log('PROXYBLOCK detected')
+    // do something here
+  }
+  if (newState === 'SMB_TOS_BLOCK') {
+    console.log('SMB_TOS_BLOCK detected')
+    // do something here
+  }
+  if (newState === 'TIMEOUT') {
+    console.log('TIMEOUT detected')
+    // do something here
+  }
+  if (newState === 'TOS_BLOCK') {
+    console.log('TOS_BLOCK detected')
+    // do something here
+  }
+  if (newState === 'UNLAUNCHED') {
+    console.log('UNLAUNCHED detected')
+    // do something here
+  }
+  if (newState === 'UNPAIRED') {
+    console.log('UNPAIRED detected')
+    // do something here
+  }
+  if (newState === 'UNPAIRED_IDLE') {
+    console.log('UNPAIRED_IDLE detected')
+    // do something here
+  }
+})
+
 clientWa.on('message', async (msg) => {
-  if (msg.body.match('[wW]*')) {
+  const checkChat =
+    msg.body.includes('hallo') ||
+    msg.body.includes('hey') ||
+    msg.body.includes('kak') ||
+    msg.body.includes('admin') ||
+    msg.body.includes('pagi') ||
+    msg.body.includes('siang') ||
+    msg.body.includes('malam')
+
+  if (checkChat) {
     const contact = await msg.getContact()
     const chat = await msg.getChat()
 
@@ -165,7 +226,7 @@ clientWa.on('message', async (msg) => {
     let number = msg.body.split(' ')[1]
     const messageIndex = msg.body.indexOf(number) + number.length
     const message = msg.body.slice(messageIndex, msg.body.length)
-    number = formatPhoneWA(number)
+    number = formatPhoneWhatsApp(number)
 
     const chat = await msg.getChat()
     chat.sendSeen()
@@ -251,7 +312,7 @@ const findGroupByName = async function (name: string) {
 
 router.get('/', async function getHome(req: Request, res: Response) {
   const responseData: any = {
-    message: 'expresso - Whatsapp Gateway',
+    message: `expresso - ${appName}`,
     maintaner: 'masb0ymas',
   }
 
@@ -272,7 +333,7 @@ router.post(
     const value = useValidation(whatsappSchema.sendMessage, formData)
 
     // format phone
-    const newPhone = formatPhoneWA(value.phone)
+    const newPhone = formatPhoneWhatsApp(value.phone)
     const newMessage = value.message
 
     // check your phone
@@ -330,7 +391,7 @@ router.post(
     const value = useValidation(whatsappSchema.sendMedia, formData)
 
     // format phone
-    const newPhone = formatPhoneWA(value.phone)
+    const newPhone = formatPhoneWhatsApp(value.phone)
 
     // check your phone
     const isRegisteredNumber = await checkRegisteredNumber(newPhone)
@@ -383,7 +444,7 @@ router.post(
       })
 
     // format phone
-    const newPhone = formatPhoneWA(value.phone)
+    const newPhone = formatPhoneWhatsApp(value.phone)
 
     // check your phone
     const isRegisteredNumber = await checkRegisteredNumber(newPhone)
@@ -461,7 +522,7 @@ router.post(
     const value = useValidation(whatsappSchema.clearMessage, formData)
 
     // format phone
-    const newPhone = formatPhoneWA(value.phone)
+    const newPhone = formatPhoneWhatsApp(value.phone)
 
     // check your phone
     const isRegisteredNumber = await checkRegisteredNumber(newPhone)
