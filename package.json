@@ -7,6 +7,7 @@
     "dev-prebuild": "npm run clean && yarn build && yarn dev",
     "dev": "nodemon ./dist/app.js",
     "start": "NODE_ENV=production node ./dist/app.js",
+    "serve:docker": "NODE_ENV=production pm2-runtime ./dist/app.js",
     "lint": "npx eslint '*/**/*.{js,jsx,ts,tsx}' --quiet --fix",
     "type-check": "npx tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
@@ -80,7 +81,7 @@
     "typescript": "^4.3.5"
   },
   "engines": {
-    "node": "12.x"
+    "node": ">= 14.x"
   },
   "_moduleAliases": {
     "@expresso/*": "dist/@expresso/*",
