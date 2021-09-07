@@ -255,6 +255,10 @@ clientWa.initialize()
 io.on('connection', (socket: Socket) => {
   socket.emit('message', 'Connecting...')
 
+  clientWa.on('change_state', (newState) => {
+    socket.emit('message', newState)
+  })
+
   clientWa.on('qr', (qr) => {
     console.log('QR RECEIVED', qr)
     QRCode.toDataURL(qr, (err, url) => {
@@ -323,6 +327,30 @@ router.get('/', async function getHome(req: Request, res: Response) {
 router.get('/v1', function (req: Request, res: Response) {
   throw new ResponseError.Forbidden('forbidden, wrong access endpoint')
 })
+
+// get profile
+router.get(
+  '/v1/profile',
+  asyncHandler(async function getProfile(req: Request, res: Response) {
+    try {
+      const { info } = clientWa
+      const batteryInfo = await info.getBatteryStatus()
+
+      const data = {
+        phone: info.wid.user,
+        pushname: info.pushname,
+        platform: info.platform,
+        version: info.phone.wa_version,
+        battery: `${batteryInfo.battery} %`,
+      }
+
+      const buildResponse = BuildResponse.get({ data })
+      return res.json(buildResponse)
+    } catch (err) {
+      throw new ResponseError.Unauthorized('please connect to whatsapp')
+    }
+  })
+)
 
 // Send Message
 router.post(
