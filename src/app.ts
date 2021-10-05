@@ -352,6 +352,25 @@ router.get(
   })
 )
 
+// Check Number
+router.get(
+  '/v1/check-number/:phone',
+  asyncHandler(async function checkNumber(req: Request, res: Response) {
+    const { phone } = req.getParams()
+
+    const newPhone = formatPhoneWhatsApp(phone)
+
+    const isRegisteredNumber = await checkRegisteredNumber(newPhone)
+    const data = { oldPhone: phone, newPhone, isRegisteredNumber }
+
+    const buildResponse = BuildResponse.get({
+      message: 'check phone number',
+      data,
+    })
+    res.json(buildResponse)
+  })
+)
+
 // Send Message
 router.post(
   '/v1/send-message',
